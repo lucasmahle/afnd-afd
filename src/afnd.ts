@@ -15,19 +15,32 @@ export class AFND {
     private alphabetMap: { [key: string]: number } = {};
     private variablesMap: { [key: string]: IVariableMap } = {};
 
-    private isAlphabetMapped(alphabet: string) {
-        return alphabet in this.alphabetMap;
+    private isAlphabetMapped(alphabet: string): boolean {
+        return Object.keys(this.alphabetMap).indexOf(alphabet) >= 0;
     }
 
-    private isVariableMapped(alphabet: string) {
-        return alphabet in this.variablesMap;
+    private isVariableMapped(variable: string): boolean {
+        return Object.keys(this.variablesMap).indexOf(variable) >= 0;
     }
+
+    private sanitizeAlphabet(alphabet: string): string {
+        return `_${alphabet}`;
+    }
+
+    private rawAlphabet(alphabet: string): string {
+        if (alphabet.charAt(0) == '_')
+            return alphabet.substr(1);
+
+        return alphabet;
+    }
+
     private getAndMapAlphabetPosition(alphabet: string): number {
-        if (!this.isAlphabetMapped(alphabet)) {
-            this.alphabetMap[alphabet] = Object.keys(this.alphabetMap).length;
+        const sanitizedAlphabet = this.sanitizeAlphabet(alphabet);
+        if (!this.isAlphabetMapped(sanitizedAlphabet)) {
+            this.alphabetMap[sanitizedAlphabet] = Object.keys(this.alphabetMap).length;
         }
 
-        return this.alphabetMap[alphabet];
+        return this.alphabetMap[sanitizedAlphabet];
     }
 
     private getAndMapVariablePosition(variable: string, isTerminal: boolean = false): number {
@@ -89,7 +102,7 @@ export class AFND {
         let stateClone = JSON.parse(JSON.stringify(this.state));
 
         const varsKeys = Object.keys(this.variablesMap);
-        const stateClone2: any[] = [['#', ...Object.keys(this.alphabetMap)]];
+        const stateClone2: any[] = [['#', ...(Object.keys(this.alphabetMap).map(v => this.rawAlphabet(v)))]];
         for (let i in varsKeys) {
             const varColumn = varsKeys[i] + (this.variablesMap[varsKeys[i]].IsTerminal ? '*' : '');
             stateClone2.push([varColumn, ...((stateClone[i] || []).map(v => (v || [' ']).join('')))]);
@@ -109,7 +122,7 @@ export class AFND {
                 const variable = this.getVariable(false, isLastCharater);
                 const lastVariableIndex = this.getAndMapVariablePosition(lastVariable);
                 const alphabetIndex = this.getAndMapAlphabetPosition(alphabet);
-                
+
                 lastVariable = variable;
 
                 this.setStatePosition(lastVariableIndex, alphabetIndex, variable);
@@ -117,7 +130,7 @@ export class AFND {
         }
     }
 
-    runGrammar() {return;
+    runGrammar() {
         // S::=0A|1A
         // 
         // [
@@ -138,7 +151,7 @@ export class AFND {
                 for (let composition of condition) {
                     // { Content: '0', Type: Alphabet }
                     if (composition.Type == ConditionType.Alphabet) {
-                        
+
                         const alphabetIndex = this.getAndMapAlphabetPosition(composition.Content);
                         console.log({
                             ct: composition.Content,
