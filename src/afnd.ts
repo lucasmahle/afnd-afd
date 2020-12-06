@@ -80,14 +80,21 @@ export class AFND {
         return variable;
     }
 
-    private setStatePosition(i: number, j: number, value: string) {
-        if (this.state[i] == undefined)
-            this.state[i] = [];
+    private setVariableAsTerminal(variable: string): void {
+        if (!this.isVariableMapped(variable))
+            return;
 
-        const coordinateValue = this.state[i][j] || [];
+        this.variablesMap[variable].IsTerminal = true;
+    }
+
+    private setStatePosition(variableIndex: number, alphabetIndex: number, value: string) {
+        if (this.state[variableIndex] == undefined)
+            this.state[variableIndex] = [];
+
+        const coordinateValue = this.state[variableIndex][alphabetIndex] || [];
         coordinateValue.push(value);
 
-        this.state[i][j] = coordinateValue;
+        this.state[variableIndex][alphabetIndex] = coordinateValue;
     }
 
     setTokens(tokens: string[]) {
@@ -131,35 +138,43 @@ export class AFND {
     }
 
     runGrammar() {
-        // S::=0A|1A
-        // 
-        // [
-        //     [ { Content: '0', Type: Alphabet }, { Content: 'A', Type: Variable } ],
-        //     [ { Content: '1', Type: Alphabet }, { Content: 'A', Type: Variable } ]
-        // ]
-
         let initialVariable = this.getVariable(true);
         const variablesRemap: { [key: string]: string } = {};
 
         for (let rule of this.grammar) {
-            // if(rule.Variable == initialVariable){
-            // }
+            let ruleVariableIndex = -1;
+            if (rule.Variable == initialVariable) {
+                ruleVariableIndex = this.getAndMapVariablePosition(initialVariable);
+            } else if(rule.Variable in variablesRemap) {
+                ruleVariableIndex = this.getAndMapVariablePosition(variablesRemap[rule.Variable]);
+            }
 
             for (let condition of rule.Conditions) {
-                // [ { Content: '0', Type: Alphabet }, { Content: 'A', Type: Variable } ],
+                let isTerminal: boolean = condition.filter(c => c.Type == ConditionType.Epsilon).length > 0;
+                let alphabetIndex = -1;
+                let variable = '';
 
                 for (let composition of condition) {
-                    // { Content: '0', Type: Alphabet }
                     if (composition.Type == ConditionType.Alphabet) {
-
-                        const alphabetIndex = this.getAndMapAlphabetPosition(composition.Content);
-                        console.log({
-                            ct: composition.Content,
-                            alphabetIndex
-                        });
+                        alphabetIndex = this.getAndMapAlphabetPosition(composition.Content);
                     }
 
-                    // { Content: 'A', Type: Variable }
+                    if (composition.Type == ConditionType.Variable) {
+                        if (!(composition.Content in variablesRemap)) {
+                            const variable = this.getVariable(false, isTerminal);
+                            variablesRemap[composition.Content] = variable;
+                        }
+
+                        variable = variablesRemap[composition.Content];
+                    }
+
+                    if (isTerminal && (rule.Variable in variablesRemap)) {
+                        this.setVariableAsTerminal(variablesRemap[rule.Variable]);
+                    }
+                }
+
+                if (ruleVariableIndex >= 0 && alphabetIndex >= 0) {
+                    this.setStatePosition(ruleVariableIndex, alphabetIndex, variable);
                 }
             }
         }
