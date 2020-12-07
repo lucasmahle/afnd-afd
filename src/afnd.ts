@@ -1,19 +1,11 @@
 import { IRule } from './models/rule.model';
-import { IVariableMap } from './models/variable-map.model';
-import {
-    ASCII_A_VALUE,
-    ASCII_S_VALUE,
-    ASCII_Z_VALUE,
-} from './consts';
 import { ConditionType } from './models/condition.enum';
+import { FiniteAutomaton } from './finite-automaton';
 
-export class AFND {
+export class AFND extends FiniteAutomaton {
     private tokens: string[];
     private grammar: IRule[];
-    private state: string[][][] = [[]];
 
-    private alphabetMap: { [key: string]: number } = {};
-    private variablesMap: { [key: string]: IVariableMap } = {};
 
     private isAlphabetMapped(alphabet: string): boolean {
         return Object.keys(this.alphabetMap).indexOf(alphabet) >= 0;
@@ -22,18 +14,7 @@ export class AFND {
     private isVariableMapped(variable: string): boolean {
         return Object.keys(this.variablesMap).indexOf(variable) >= 0;
     }
-
-    private sanitizeAlphabet(alphabet: string): string {
-        return `_${alphabet}`;
-    }
-
-    private rawAlphabet(alphabet: string): string {
-        if (alphabet.charAt(0) == '_')
-            return alphabet.substr(1);
-
-        return alphabet;
-    }
-
+    
     private getAndMapAlphabetPosition(alphabet: string): number {
         const sanitizedAlphabet = this.sanitizeAlphabet(alphabet);
         if (!this.isAlphabetMapped(sanitizedAlphabet)) {
@@ -52,24 +33,6 @@ export class AFND {
         }
 
         return this.variablesMap[variable].Value;
-    }
-
-    private generateVariable(variablesCount: number): string {
-        if (variablesCount < 0)
-            return String.fromCharCode(ASCII_S_VALUE);
-
-        let nextVariableASCIICode = ASCII_A_VALUE + variablesCount;
-        if (nextVariableASCIICode >= ASCII_S_VALUE)
-            nextVariableASCIICode++;
-
-        let prefix = '';
-        if (nextVariableASCIICode > ASCII_Z_VALUE) {
-            const decreaseTimes = Math.floor(nextVariableASCIICode / ASCII_Z_VALUE) - 1;
-            prefix = this.generateVariable(decreaseTimes);
-            nextVariableASCIICode = nextVariableASCIICode - (ASCII_Z_VALUE - ASCII_A_VALUE) - 1;
-        }
-
-        return prefix + String.fromCharCode(nextVariableASCIICode);
     }
 
     private getVariable(isFirstVariable: boolean = false, isTerminal: boolean = false): string {
@@ -97,25 +60,24 @@ export class AFND {
         this.state[variableIndex][alphabetIndex] = coordinateValue;
     }
 
+    getState(){
+        return this.state;
+    }
+
+    getAlphabet(){
+        return this.alphabetMap;
+    }
+
+    getVariables(){
+        return this.variablesMap;
+    }
+
     setTokens(tokens: string[]) {
         this.tokens = tokens;
     }
 
     setGrammar(grammar: IRule[]) {
         this.grammar = grammar;
-    }
-
-    printTable() {
-        let stateClone = JSON.parse(JSON.stringify(this.state));
-
-        const varsKeys = Object.keys(this.variablesMap);
-        const stateClone2: any[] = [['#', ...(Object.keys(this.alphabetMap).map(v => this.rawAlphabet(v)))]];
-        for (let i in varsKeys) {
-            const varColumn = varsKeys[i] + (this.variablesMap[varsKeys[i]].IsTerminal ? '*' : '');
-            stateClone2.push([varColumn, ...((stateClone[i] || []).map(v => (v || [' ']).join('')))]);
-        }
-
-        console.table(stateClone2);
     }
 
     runTokens() {
@@ -143,6 +105,7 @@ export class AFND {
 
         for (let rule of this.grammar) {
             let ruleVariableIndex = -1;
+
             if (rule.Variable == initialVariable) {
                 ruleVariableIndex = this.getAndMapVariablePosition(initialVariable);
             } else if(rule.Variable in variablesRemap) {
@@ -173,7 +136,7 @@ export class AFND {
                     }
                 }
 
-                if (ruleVariableIndex >= 0 && alphabetIndex >= 0) {
+                if (ruleVariableIndex >= 0 && alphabetIndex >= 0 && variable != '') {
                     this.setStatePosition(ruleVariableIndex, alphabetIndex, variable);
                 }
             }
