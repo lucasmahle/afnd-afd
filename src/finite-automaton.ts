@@ -43,16 +43,86 @@ export class FiniteAutomaton {
         return prefix + String.fromCharCode(nextVariableASCIICode);
     }
 
+    protected isVariableMapped(variable: string): boolean {
+        return Object.keys(this.variablesMap).indexOf(variable) >= 0;
+    }
+
+    protected getAndMapVariablePosition(variable: string | string[], isTerminal: boolean = false): number {
+        let composition: string[] = undefined;
+        if (Array.isArray(variable)) {
+            composition = variable;
+            variable = `[${variable.sort().join('')}]`;
+        } else {
+            composition = [variable];
+        }
+
+        if (!this.isVariableMapped(variable)) {
+            this.variablesMap[variable] = {
+                Value: Object.keys(this.variablesMap).length,
+                IsTerminal: isTerminal,
+                Composition: composition
+            };
+        }
+
+        return this.variablesMap[variable].Value;
+    }
+
+    protected isAlphabetMapped(alphabet: string): boolean {
+        return Object.keys(this.alphabetMap).indexOf(alphabet) >= 0;
+    }
+
+    protected getAndMapAlphabetPosition(alphabet: string): number {
+        const sanitizedAlphabet = this.sanitizeAlphabet(alphabet);
+        if (!this.isAlphabetMapped(sanitizedAlphabet)) {
+            this.alphabetMap[sanitizedAlphabet] = Object.keys(this.alphabetMap).length;
+        }
+
+        return this.alphabetMap[sanitizedAlphabet];
+    }
+
+    protected setStatePosition(variableIndex: number, alphabetIndex: number, value: string) {
+        if (this.state[variableIndex] == undefined)
+            this.state[variableIndex] = [];
+
+        const coordinateValue = this.state[variableIndex][alphabetIndex] || [];
+
+        if (coordinateValue.includes(value)) return;
+
+        coordinateValue.push(value);
+
+        this.state[variableIndex][alphabetIndex] = coordinateValue;
+    }
+
+    protected getVariabelByIndex(index: number): IVariableMap {
+        for (let variable in this.variablesMap) {
+            if (this.variablesMap[variable].Value == index) return this.variablesMap[variable];
+        }
+
+        return null;
+    }
+
     setState(state: string[][][]): void {
         this.state = state;
+    }
+
+    getVariableState(variableIndex: number): string[][] {
+        return this.state[variableIndex];
     }
 
     setAlphabet(alphabetMap: { [key: string]: number }): void {
         this.alphabetMap = alphabetMap;
     }
 
+    getAlphabet(): { [key: string]: number } {
+        return this.alphabetMap;
+    }
+
     setVariables(variablesMap: { [key: string]: IVariableMap }): void {
         this.variablesMap = variablesMap;
+    }
+
+    getVariables(): { [key: string]: IVariableMap } {
+        return this.variablesMap;
     }
 
     printTable() {
@@ -62,7 +132,7 @@ export class FiniteAutomaton {
         const stateClone2: any[] = [['#', ...(Object.keys(this.alphabetMap).map(v => this.rawAlphabet(v)))]];
         for (let i in varsKeys) {
             const varColumn = varsKeys[i] + (this.variablesMap[varsKeys[i]].IsTerminal ? '*' : '');
-            stateClone2.push([varColumn, ...((stateClone[i] || []).map(v => (v || [' ']).join('')))]);
+            stateClone2.push([varColumn, ...((stateClone[i] || []).map(v => (v || [' ']).join(',')))]);
         }
 
         console.table(stateClone2);

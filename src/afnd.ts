@@ -7,34 +7,6 @@ export class AFND extends FiniteAutomaton {
     private grammar: IRule[];
 
 
-    private isAlphabetMapped(alphabet: string): boolean {
-        return Object.keys(this.alphabetMap).indexOf(alphabet) >= 0;
-    }
-
-    private isVariableMapped(variable: string): boolean {
-        return Object.keys(this.variablesMap).indexOf(variable) >= 0;
-    }
-    
-    private getAndMapAlphabetPosition(alphabet: string): number {
-        const sanitizedAlphabet = this.sanitizeAlphabet(alphabet);
-        if (!this.isAlphabetMapped(sanitizedAlphabet)) {
-            this.alphabetMap[sanitizedAlphabet] = Object.keys(this.alphabetMap).length;
-        }
-
-        return this.alphabetMap[sanitizedAlphabet];
-    }
-
-    private getAndMapVariablePosition(variable: string, isTerminal: boolean = false): number {
-        if (!this.isVariableMapped(variable)) {
-            this.variablesMap[variable] = {
-                Value: Object.keys(this.variablesMap).length,
-                IsTerminal: isTerminal
-            };
-        }
-
-        return this.variablesMap[variable].Value;
-    }
-
     private getVariable(isFirstVariable: boolean = false, isTerminal: boolean = false): string {
         const variablesCount = Object.keys(this.variablesMap).length - 1;
         const variable = this.generateVariable(!isFirstVariable ? variablesCount : -1);
@@ -48,16 +20,6 @@ export class AFND extends FiniteAutomaton {
             return;
 
         this.variablesMap[variable].IsTerminal = true;
-    }
-
-    private setStatePosition(variableIndex: number, alphabetIndex: number, value: string) {
-        if (this.state[variableIndex] == undefined)
-            this.state[variableIndex] = [];
-
-        const coordinateValue = this.state[variableIndex][alphabetIndex] || [];
-        coordinateValue.push(value);
-
-        this.state[variableIndex][alphabetIndex] = coordinateValue;
     }
 
     getState(){

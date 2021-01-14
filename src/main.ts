@@ -25,13 +25,13 @@ function setup(grammarInput: string, tokensInput: string) {
   afnd.runTokens();
   afnd.runGrammar();
 
-  // afnd.printTable();
+  afnd.printTable();
 
   afd.setState(afnd.getState());
   afd.setAlphabet(afnd.getAlphabet());
   afd.setVariables(afnd.getVariables());
 
-  // afd.convertToDetermined();
+  afd.convertToDetermined();
 
   afd.printTable();
 }
