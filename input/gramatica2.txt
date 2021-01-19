@@ -1,0 +1,2 @@
+S::=aA|eA|iA|oA|uA
+A::=aA|eA|iA|oA|uA|ε

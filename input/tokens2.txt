@@ -1,5 +1,3 @@
-lu
-luz
-lucas
-
-A::=0A|1A|ɛ
+se
+entao
+senao
