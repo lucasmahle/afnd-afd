@@ -36,16 +36,15 @@ export class AFD extends FiniteAutomaton {
         let amountNewVariable = 1;
 
         for (let indexVariable = 0; indexVariable < amountNewVariable; indexVariable++) {
-            console.log(`indexVariable: ${indexVariable}`);
+            //console.log(`indexVariable: ${indexVariable}`);
 
             const newStateVariable = this.getVariabelByIndex(indexVariable);
 
             const mapaInteracaoComposicao = {};
             for (let variableComposition of newStateVariable.Composition) {
-                console.log(`variableComposition: ${variableComposition}`);
+                // this.printTable();
+                //console.log(`variableComposition: ${variableComposition}`);
                 const statesFromNDVariable = this.finiteAutomatonNotDetermined.getVariableState(NDvariables[variableComposition].Value);
-
-                this.printTable();
 
                 for (let NDvariableLetterIndex in statesFromNDVariable) {
                     let NDvariableLetter = statesFromNDVariable[NDvariableLetterIndex];
@@ -54,6 +53,8 @@ export class AFD extends FiniteAutomaton {
                     let nextVariableState = NDvariableLetter.length > 0 ? NDvariableLetter[0] : '';
 
                     if (NDvariableLetter.length > 1) {
+                        //console.log('Mais de um estado para a letra por esse estado');
+
                         // Agrupa variáveis e cria o estado novo [concatenações]; Se um deles for terminal, adicionar flag de final
                         nextVariableState = `[${NDvariableLetter.sort().join('')}]`;
 
@@ -63,33 +64,48 @@ export class AFD extends FiniteAutomaton {
                         this.setStatePosition(indexVariable, parseInt(NDvariableLetterIndex), nextVariableState);
                         amountNewVariable++;
                         NDvariableLetter.map(v => mappedVariables[v] = nextVariableState);
+                    } else if (mapaInteracaoComposicao[NDvariableLetterIndex]) {
+                        //console.log('Já existe um estado dessa composição para essa letra');
+
+                        const composicaoEstadoASerSubstituido = mapaInteracaoComposicao[NDvariableLetterIndex];
+                        const composicaoNovoEstado = [...mapaInteracaoComposicao[NDvariableLetterIndex], nextVariableState];
+
+                        // TODO: Verificar se é terminal
+                        this.replaceAndMapVariablePosition(composicaoEstadoASerSubstituido, composicaoNovoEstado, false);
+
+                        mapaInteracaoComposicao[NDvariableLetterIndex] = composicaoNovoEstado;
+
                     } else if (!mappedVariables[nextVariableState]) {
-                        console.log('NDvariableLetterIndex', NDvariableLetterIndex);
+                        //console.log('Apenas um estado para essa letra nesse estado não mapeado');
+                        //console.log('NDvariableLetterIndex', NDvariableLetterIndex);
 
                         mapaInteracaoComposicao[NDvariableLetterIndex] = mapaInteracaoComposicao[NDvariableLetterIndex] || [];
-                        if (mapaInteracaoComposicao[NDvariableLetterIndex].length > 0) {
-                            const aaaa = mapaInteracaoComposicao[NDvariableLetterIndex];
-                            const vvvv = aaaa.length == 1 ? aaaa : `[${aaaa.join('')}]`;
-                            console.log('mappedVariables', vvvv, mappedVariables);
-                            console.log('this.variablesMap[vvvv]', this.variablesMap[vvvv]);
-                            mapaInteracaoComposicao[NDvariableLetterIndex].push(nextVariableState);
-                            delete this.variablesMap[vvvv];
-                            nextVariableState = mapaInteracaoComposicao[NDvariableLetterIndex].length == 1 ? mapaInteracaoComposicao[NDvariableLetterIndex] : `[${mapaInteracaoComposicao[NDvariableLetterIndex].join('')}]`;
-                        } else {
-                            mapaInteracaoComposicao[NDvariableLetterIndex].push(nextVariableState);
-                        }
+                        mapaInteracaoComposicao[NDvariableLetterIndex].push(nextVariableState);
+                        // if (mapaInteracaoComposicao[NDvariableLetterIndex].length > 0) {
+                        //     const aaaa = mapaInteracaoComposicao[NDvariableLetterIndex];
+                        //     const vvvv = aaaa.length == 1 ? aaaa : `[${aaaa.join('')}]`;
+                        ////     console.log('mappedVariables', vvvv, mappedVariables);
+                        ////     console.log('this.variablesMap[vvvv]', this.variablesMap[vvvv]);
+                        //     mapaInteracaoComposicao[NDvariableLetterIndex].push(nextVariableState);
+                        //     delete this.variablesMap[vvvv];
+                        //     nextVariableState = mapaInteracaoComposicao[NDvariableLetterIndex].length == 1 ? mapaInteracaoComposicao[NDvariableLetterIndex] : `[${mapaInteracaoComposicao[NDvariableLetterIndex].join('')}]`;
+                        // } else {
+                        //     mapaInteracaoComposicao[NDvariableLetterIndex].push(nextVariableState);
+                        // }
 
                         // TODO: Verificar se é terminal
                         this.getAndMapVariablePosition(nextVariableState, false);
                         this.setStatePosition(indexVariable, parseInt(NDvariableLetterIndex), nextVariableState);
-                        // amountNewVariable++;
+                        amountNewVariable++;
 
                         mappedVariables[nextVariableState] = NDvariableLetter;
                     } else {
-
+                        //console.log('Apenas um estado para essa letra nesse estado já mapeado');
                         this.setStatePosition(indexVariable, parseInt(NDvariableLetterIndex), nextVariableState);
                     }
-                    // console.log(NDvariableLetter, mappedVariables);
+                    //console.log(NDvariableLetter);
+                    //console.log(mappedVariables);
+                    //console.log(mapaInteracaoComposicao);
                 }
             }
         }

@@ -47,14 +47,44 @@ export class FiniteAutomaton {
         return Object.keys(this.variablesMap).indexOf(variable) >= 0;
     }
 
-    protected getAndMapVariablePosition(variable: string | string[], isTerminal: boolean = false): number {
+    private variableToString(variable: string | string[]) {
         let composition: string[] = undefined;
         if (Array.isArray(variable)) {
             composition = variable;
-            variable = `[${variable.sort().join('')}]`;
+            variable = variable.length > 1 ? `[${variable.sort().join('')}]` : variable[0].toString();
         } else {
             composition = [variable];
         }
+
+        return { composition, variable };
+    }
+
+    protected replaceAndMapVariablePosition(oldVariableComposition: string | string[], newVariableComposition: string | string[], isTerminal: boolean = false): number {
+        const { composition: oldComposition, variable: oldVariable } = this.variableToString(oldVariableComposition);
+        const { composition: newComposition, variable: newVariable } = this.variableToString(newVariableComposition);
+
+        delete this.variablesMap[oldVariable];
+
+        if (!this.isVariableMapped(newVariable)) {
+            this.variablesMap[newVariable] = {
+                Value: Object.keys(this.variablesMap).length,
+                IsTerminal: isTerminal,
+                Composition: newComposition
+            };
+        }
+
+        for (let i in this.state) {
+            for (let j in this.state[i]) {
+                if (this.state[i][j].includes(oldVariable))
+                    this.state[i][j] = [...(this.state[i][j].filter(s => s !== oldVariable)), newVariable];
+            }
+        }
+
+        return this.variablesMap[newVariable].Value;
+    }
+
+    protected getAndMapVariablePosition(compositionVariable: string | string[], isTerminal: boolean = false): number {
+        const { composition, variable } = this.variableToString(compositionVariable);
 
         if (!this.isVariableMapped(variable)) {
             this.variablesMap[variable] = {
