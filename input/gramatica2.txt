@@ -1,2 +1,2 @@
-S::=aA|eA|iA|oA|uA
-A::=aA|eA|iA|oA|uA|ε
+<S> ::= a<A> | e<A> | i<A> | o<A> | u<A>
+<A> ::= a<A> | e<A> | i<A> | o<A> | u<A> | ε

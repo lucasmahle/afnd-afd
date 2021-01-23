@@ -13,4 +13,4 @@ export const LINE_SEPARATOR = '\n';
 
 export const EPSILON = 'ɛ';
 
-export const VARIABLE_PATTERN = /([A-Z]+)/;
+export const VARIABLE_PATTERN = /<([A-Z]+)>/;

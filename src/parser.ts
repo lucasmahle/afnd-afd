@@ -21,7 +21,7 @@ export function RuleParse(inputConditions: string): IComposition[][] {
     const conditions = filterInputSplit(inputConditions, CONDITION_SEPARATOR);
 
     return conditions.map(condition => {
-        const compositionParts = condition.split(VARIABLE_PATTERN).filter(v => v != '');
+        const compositionParts = condition.split(VARIABLE_PATTERN).map(v => v.trim()).filter(v => v != '');
 
         return compositionParts.map(val => {
             const composition = {
@@ -45,10 +45,10 @@ export function GrammarParser(input: string): IRule[] {
     const rules = filterInputSplit(input);
 
     return rules.map(rule => {
-        const [variable, conditions] = rule.split(CONDITION_ATTR);
+        const [variable, conditions] = rule.split(CONDITION_ATTR).map(v => v.trim());
         
         return <IRule>{
-            Variable: variable,
+            Variable: variable.replace(/<|>/g, ''),
             Conditions: RuleParse(conditions)
         };
     });
