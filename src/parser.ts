@@ -1,15 +1,16 @@
 import { IComposition } from './models/composition.model';
 import { ConditionType } from './models/condition.enum';
 import { IRule } from './models/rule.model';
-import { 
+import {
     LINE_SEPARATOR,
     CONDITION_SEPARATOR,
     VARIABLE_PATTERN,
+    VARIABLE_SANITIZER_PATTERN,
     EPSILON,
     CONDITION_ATTR,
- } from './consts';
+} from './consts';
 
- 
+
 function filterInputSplit(content: string, separator: string = LINE_SEPARATOR) {
     const lines = content.split(separator);
 
@@ -36,7 +37,10 @@ export function RuleParse(inputConditions: string): IComposition[][] {
             else
                 composition.Type = ConditionType.Alphabet;
 
-                return composition;
+            if (composition.Type == ConditionType.Variable)
+                composition.Content = composition.Content.replace(VARIABLE_SANITIZER_PATTERN, '');
+
+            return composition;
         })
     })
 }
@@ -46,7 +50,7 @@ export function GrammarParser(input: string): IRule[] {
 
     return rules.map(rule => {
         const [variable, conditions] = rule.split(CONDITION_ATTR).map(v => v.trim());
-        
+
         return <IRule>{
             Variable: variable.replace(/<|>/g, ''),
             Conditions: RuleParse(conditions)

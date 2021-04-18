@@ -131,6 +131,16 @@ export class FiniteAutomaton {
         return null;
     }
 
+    isVariableTerminal(variable: string | string[]): boolean {
+        if (Array.isArray(variable))
+            return variable.some(variable => this.isVariableTerminal(variable));
+
+        if (!this.isVariableMapped(variable))
+            return false;
+
+        return this.variablesMap[variable].IsTerminal;
+    }
+
     setState(state: string[][][]): void {
         this.state = state;
     }

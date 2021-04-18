@@ -55,9 +55,10 @@ export class AFD extends FiniteAutomaton {
                         nextVariableState = `[${NDvariableLetter.sort().join('')}]`;
 
                         // Adiciona no mapeamento de estados novos
-                        // TODO: Verificar se é terminal
-                        this.getAndMapVariablePosition(NDvariableLetter, false);
+                        const isTerminal: boolean = this.finiteAutomatonNotDetermined.isVariableTerminal(NDvariableLetter);
+                        this.getAndMapVariablePosition(NDvariableLetter, isTerminal);
                         this.setStatePosition(indexVariable, parseInt(NDvariableLetterIndex), nextVariableState);
+                        
                         amountNewVariable++;
                         NDvariableLetter.map(v => mappedVariables[v] = nextVariableState);
                     } else if (mapaInteracaoComposicao[NDvariableLetterIndex]) {
@@ -65,8 +66,8 @@ export class AFD extends FiniteAutomaton {
                         const composicaoEstadoASerSubstituido = mapaInteracaoComposicao[NDvariableLetterIndex];
                         const composicaoNovoEstado = [...mapaInteracaoComposicao[NDvariableLetterIndex], nextVariableState];
 
-                        // TODO: Verificar se é terminal
-                        this.replaceAndMapVariablePosition(composicaoEstadoASerSubstituido, composicaoNovoEstado, false);
+                        const isTerminal: boolean = this.finiteAutomatonNotDetermined.isVariableTerminal(composicaoNovoEstado);
+                        this.replaceAndMapVariablePosition(composicaoEstadoASerSubstituido, composicaoNovoEstado, isTerminal);
 
                         mapaInteracaoComposicao[NDvariableLetterIndex] = composicaoNovoEstado;
 
@@ -74,9 +75,9 @@ export class AFD extends FiniteAutomaton {
 
                         mapaInteracaoComposicao[NDvariableLetterIndex] = mapaInteracaoComposicao[NDvariableLetterIndex] || [];
                         mapaInteracaoComposicao[NDvariableLetterIndex].push(nextVariableState);
-                       
-                        // TODO: Verificar se é terminal
-                        this.getAndMapVariablePosition(nextVariableState, false);
+
+                        const isTerminal: boolean = this.finiteAutomatonNotDetermined.isVariableTerminal(nextVariableState);
+                        this.getAndMapVariablePosition(nextVariableState, isTerminal);
                         this.setStatePosition(indexVariable, parseInt(NDvariableLetterIndex), nextVariableState);
                         amountNewVariable++;
 

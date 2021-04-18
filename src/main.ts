@@ -12,7 +12,7 @@ function getTokens(): string {
   return readFileSync('./input/tokens.txt').toString();
 }
 
-function setup(grammarInput: string, tokensInput: string) {
+function setup(grammarInput: string, tokensInput: string): AFD {
   const grammar = GrammarParser(grammarInput);
   const tokens = TokenParser(tokensInput);
 
@@ -33,14 +33,15 @@ function setup(grammarInput: string, tokensInput: string) {
 
   afd.convertToDetermined();
 
-  afd.printTable();
+  return afd;
 }
 
 function bootstrapWithDefinedInputs() {
   const grammarInput = getGrammar();
   const tokensInput = getTokens();
 
-  setup(grammarInput, tokensInput);
+  const afd = setup(grammarInput, tokensInput);
+  afd.printTable();
 }
 
 
