@@ -30,6 +30,22 @@ export class AFD extends FiniteAutomaton {
         this.variablesMap[inicialVariable] = value[inicialVariable];
     }
 
+    createErrorState(): void {
+        const errorStateVariable = this.generateVariable(0, true);
+
+        this.getAndMapVariablePosition(errorStateVariable, true);
+
+        const stateVariableLength = this.getStateVariableLength();
+        const stateAlphabetLength = this.getStateAlphabetLength();
+
+        for (let i = 0; i < stateVariableLength; i++) {
+            for (let j = 0; j < stateAlphabetLength; j++) {
+                if (!Array.isArray(this.state[i][j]) || this.state[i][j].length == 0)
+                    this.state[i][j] = [errorStateVariable]
+            }
+        }
+    }
+
     convertToDetermined(): void {
         const mappedVariables = {};
         const NDvariables = this.finiteAutomatonNotDetermined.getVariables();
@@ -40,7 +56,6 @@ export class AFD extends FiniteAutomaton {
 
             const mapaInteracaoComposicao = {};
             for (let variableComposition of newStateVariable.Composition) {
-                // this.printTable();
                 const statesFromNDVariable = this.finiteAutomatonNotDetermined.getVariableState(NDvariables[variableComposition].Value);
 
                 for (let NDvariableLetterIndex in statesFromNDVariable) {
@@ -58,7 +73,7 @@ export class AFD extends FiniteAutomaton {
                         const isTerminal: boolean = this.finiteAutomatonNotDetermined.isVariableTerminal(NDvariableLetter);
                         this.getAndMapVariablePosition(NDvariableLetter, isTerminal);
                         this.setStatePosition(indexVariable, parseInt(NDvariableLetterIndex), nextVariableState);
-                        
+
                         amountNewVariable++;
                         NDvariableLetter.map(v => mappedVariables[v] = nextVariableState);
                     } else if (mapaInteracaoComposicao[NDvariableLetterIndex]) {

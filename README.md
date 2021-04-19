@@ -1,2 +1,3 @@
 
-- Setar estados terminais
+- Setar estado de erro
+- Gerar saída

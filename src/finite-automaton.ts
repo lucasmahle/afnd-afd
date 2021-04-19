@@ -1,6 +1,7 @@
 import {
     ASCII_A_VALUE,
     ASCII_S_VALUE,
+    ASCII_X_VALUE,
     ASCII_Z_VALUE,
 } from './consts';
 import { IVariableMap } from './models/variable-map.model';
@@ -25,12 +26,18 @@ export class FiniteAutomaton {
         return alphabet;
     }
 
-    protected generateVariable(variablesCount: number = -1): string {
+    protected generateVariable(variablesCount: number = -1, isErrorState: boolean = false): string {
         if (variablesCount < 0)
             return String.fromCharCode(ASCII_S_VALUE);
 
+        if (isErrorState)
+            return String.fromCharCode(ASCII_X_VALUE);
+
         let nextVariableASCIICode = ASCII_A_VALUE + variablesCount;
         if (nextVariableASCIICode >= ASCII_S_VALUE)
+            nextVariableASCIICode++;
+
+        if (nextVariableASCIICode >= ASCII_X_VALUE)
             nextVariableASCIICode++;
 
         let prefix = '';
@@ -92,6 +99,7 @@ export class FiniteAutomaton {
                 IsTerminal: isTerminal,
                 Composition: composition
             };
+            this.state[this.variablesMap[variable].Value] = [];
         }
 
         return this.variablesMap[variable].Value;
@@ -163,6 +171,14 @@ export class FiniteAutomaton {
 
     getVariables(): { [key: string]: IVariableMap } {
         return this.variablesMap;
+    }
+
+    getStateVariableLength(): number {
+        return Object.keys(this.variablesMap).length;
+    }
+
+    getStateAlphabetLength(): number {
+        return Object.keys(this.alphabetMap).length;
     }
 
     printTable() {
