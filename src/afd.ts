@@ -31,7 +31,7 @@ export class AFD extends FiniteAutomaton {
     }
 
     createErrorState(): void {
-        const errorStateVariable = this.generateVariable(0, true);
+        const errorStateVariable = this.generateErrorState();
 
         this.getAndMapVariablePosition(errorStateVariable, true);
 

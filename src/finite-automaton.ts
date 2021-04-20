@@ -26,30 +26,6 @@ export class FiniteAutomaton {
         return alphabet;
     }
 
-    protected generateVariable(variablesCount: number = -1, isErrorState: boolean = false): string {
-        if (variablesCount < 0)
-            return String.fromCharCode(ASCII_S_VALUE);
-
-        if (isErrorState)
-            return String.fromCharCode(ASCII_X_VALUE);
-
-        let nextVariableASCIICode = ASCII_A_VALUE + variablesCount;
-        if (nextVariableASCIICode >= ASCII_S_VALUE)
-            nextVariableASCIICode++;
-
-        if (nextVariableASCIICode >= ASCII_X_VALUE)
-            nextVariableASCIICode++;
-
-        let prefix = '';
-        if (nextVariableASCIICode > ASCII_Z_VALUE) {
-            const decreaseTimes = Math.floor(nextVariableASCIICode / ASCII_Z_VALUE) - 1;
-            prefix = this.generateVariable(decreaseTimes);
-            nextVariableASCIICode = nextVariableASCIICode - (ASCII_Z_VALUE - ASCII_A_VALUE) - 1;
-        }
-
-        return prefix + String.fromCharCode(nextVariableASCIICode);
-    }
-
     protected isVariableMapped(variable: string): boolean {
         return Object.keys(this.variablesMap).indexOf(variable) >= 0;
     }
@@ -137,6 +113,59 @@ export class FiniteAutomaton {
         }
 
         return null;
+    }
+
+    getStatePosition(indexVariableInState: number, indexLetterInState: number): string[] {
+        if (!this.state[indexVariableInState])
+            return null;
+
+        if (!this.state[indexVariableInState][indexLetterInState])
+            return null;
+
+        return this.state[indexVariableInState][indexLetterInState];
+    }
+
+    generateErrorState(): string {
+        return this.generateVariable(0, true);
+    }
+
+    generateVariable(variablesCount: number = -1, isErrorState: boolean = false): string {
+        if (variablesCount < 0)
+            return String.fromCharCode(ASCII_S_VALUE);
+
+        if (isErrorState)
+            return String.fromCharCode(ASCII_X_VALUE);
+
+        let nextVariableASCIICode = ASCII_A_VALUE + variablesCount;
+        if (nextVariableASCIICode >= ASCII_S_VALUE)
+            nextVariableASCIICode++;
+
+        if (nextVariableASCIICode >= ASCII_X_VALUE)
+            nextVariableASCIICode++;
+
+        let prefix = '';
+        if (nextVariableASCIICode > ASCII_Z_VALUE) {
+            const decreaseTimes = Math.floor(nextVariableASCIICode / ASCII_Z_VALUE) - 1;
+            prefix = this.generateVariable(decreaseTimes);
+            nextVariableASCIICode = nextVariableASCIICode - (ASCII_Z_VALUE - ASCII_A_VALUE) - 1;
+        }
+
+        return prefix + String.fromCharCode(nextVariableASCIICode);
+    }
+
+    getAlphabetIndexByLetter(letter: string): number {
+        const sanitizedLetter = this.sanitizeAlphabet(letter);
+
+        if (!(sanitizedLetter in this.alphabetMap)) return null;
+
+        return this.alphabetMap[sanitizedLetter];
+    }
+
+    getVariableIndexByLetter(variable: string): number {
+        if (!this.isVariableMapped(variable))
+            return null;
+
+        return this.variablesMap[variable].Value;
     }
 
     isVariableTerminal(variable: string | string[]): boolean {

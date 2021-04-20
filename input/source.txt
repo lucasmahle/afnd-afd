@@ -1,0 +1,2 @@
+se 1 sei 01
+    senao 00
